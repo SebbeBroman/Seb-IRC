@@ -112,6 +112,8 @@ public class ClientWindow extends javax.swing.JFrame {
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        String data = jTextField1.getText(); //perform your operation
+        System.out.println(data);
     }
 
     /**
