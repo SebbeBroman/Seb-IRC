@@ -46,8 +46,8 @@ public class IRCParser
 		switch (messageList.get(1)) {
 		    case "376": //END of MOTD, time to join channel
 			sendServer("JOIN", "#botters-test");
-			Runnable send = new Send(out);
-			new Thread(send).start();
+			//Runnable send = new Send(out);
+			//new Thread(send).start();
 			break;
 		    case "433":
 			System.out.println("Nickname taken!");

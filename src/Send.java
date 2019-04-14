@@ -9,10 +9,12 @@ import java.util.Scanner;
 public class Send implements Runnable
 {
     private static PrintWriter out;
+    private ClientGui gui;
     Scanner console = new Scanner(System.in);
 
-    public Send(PrintWriter output) {
+    public Send(PrintWriter output, ClientGui GUI) {
 	out = output;
+	gui = GUI;
     }
 
     public void run(){
@@ -22,7 +24,7 @@ public class Send implements Runnable
 	}
     }
 
-    private void inputHandler(String input){
+    public void inputHandler(String input){
     List<String> messageList = new ArrayList<String>(Arrays.asList(input.split(" ")));
     String command= input.split(" ")[0];
     switch(command){
@@ -30,7 +32,7 @@ public class Send implements Runnable
 	    sendServer("PRIVMSG "+ messageList.get(1)+ " " + getRest(messageList, 2));
 	    break;
 	case "/join":
-	    sendServer("JOIN #"+ messageList.get(1));
+	    sendServer("JOIN "+ messageList.get(1));
 	    break;
 	case "/part":
 	    sendServer("PART "+ messageList.get(1));
@@ -51,6 +53,7 @@ public class Send implements Runnable
     }
 
     private void writeToScreen(String message) {
+	gui.infoToScreen(message);
     	System.out.println("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] " + message);
     }
     private String getRest(List<String> strings, int index){
