@@ -32,8 +32,10 @@ public class ClientGui extends JFrame
 	messagePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         this.frame = new JFrame("IRC-Client");
         createMenuBar();
+	JTabbedPane tb = new JTabbedPane();
+	tb.add("No Connection",messagePane);
         frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
-        frame.add(messagePane, "span 5,grow");
+        frame.add(tb, "span 5,grow");
         frame.add(userPane, "span 2,grow, wrap");
         frame.add(userInputField, "span 5, grow");
         frame.add(sendButton, "span 2, wrap");
@@ -102,6 +104,10 @@ public class ClientGui extends JFrame
         connect.add(connectTo);
         menu.add(connect);
         frame.setJMenuBar(menu);
+    }
+
+    public static void main(String[] args) {
+	new ClientGui();
     }
 
 }
