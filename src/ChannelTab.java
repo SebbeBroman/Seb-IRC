@@ -2,13 +2,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Vector;
 
 public class ChannelTab
 {
     private String channel;
+
+    public String getChannel() {
+	return channel;
+    }
+
     private JTabbedPane parentPane;
     private JTextArea messageBox = new JTextArea();
     private JScrollPane messagePane = new JScrollPane(messageBox);
+    private Vector users = new Vector();
 
     public ChannelTab(final String channel, final JTabbedPane tb) {
 	this.channel = channel;
@@ -26,5 +33,15 @@ public class ChannelTab
 	messageBox.setCaretPosition(messageBox.getDocument().getLength());
     }
 
+    public void addUser(String username){
+        users.add(username);
+    }
 
+    public void removeTab(){
+        parentPane.remove( parentPane.indexOfTab(this.channel));
+    }
+
+    public Vector getUsers() {
+	return users;
+    }
 }

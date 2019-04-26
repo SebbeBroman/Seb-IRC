@@ -1,36 +1,42 @@
 import net.miginfocom.swing.MigLayout;
-
+/*
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
-public class ClientGui extends JFrame
+public class ClientGuiOLD extends JFrame
 {
     private JFrame frame;
     private String nickname;
+    private JTextArea messageBox = new JTextArea();
+    private JScrollPane messagePane = new JScrollPane(messageBox);
     private JList userList = new JList();
     private Vector users = new Vector();
     private JButton sendButton = new JButton("Send");
     private JScrollPane userPane = new JScrollPane(userList);
     private JTextField userInputField = new JTextField();
-    private JTabbedPane tabbedPane = new JTabbedPane();
+    private JTabbedPane tb = new JTabbedPane();
+    private Runnable currentParser;
     private JLabel status = new JLabel("Connected to: None..");
-    private IRCConnection connection;
-    private ChannelTabList channels;
-    private String currentTab;
+    IRCConnection connection;
 
-    public ClientGui() {
-        channels = new ChannelTabList(tabbedPane);
+    public ClientGuiOLD() {
         updateStatus("None");
         userPane.setPreferredSize(new Dimension(100, 100));
+	messagePane.setPreferredSize(new Dimension(380, 100));
+	messageBox.setLineWrap(true);
+	messageBox.setWrapStyleWord(true);
+	messageBox.setEditable(false);
+	messagePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         this.frame = new JFrame("IRC-Client");
         createMenuBar();
-	channels.addChannel(new ChannelTab("Standard", tabbedPane));
+	tb.add("No Connection",messagePane);
         frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
-        frame.add(tabbedPane, "span 5,grow");
+        frame.add(tb, "span 5,grow");
         frame.add(userPane, "span 2,grow, wrap");
         frame.add(userInputField, "span 5, grow");
         frame.add(sendButton, "span 2, wrap");
@@ -38,13 +44,12 @@ public class ClientGui extends JFrame
 	frame.pack();
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.setVisible(true);
-	tabbedPane.addChangeListener(this::switchedTab);
 	userInputField.addActionListener(this::sendMessage);
 	sendButton.addActionListener(this::sendMessage);
     }
 
-    public void addUser(String username, String channel){
-        channels.addUser(username, channel);
+    public void addUser(String username){
+        users.addElement(username);
     }
     public void updateUsers(){
         userList.setListData(users);
@@ -67,25 +72,20 @@ public class ClientGui extends JFrame
     private void sendMessage(ActionEvent event){
 	String fromUser = userInputField.getText();
 	if (fromUser != null) {
-	    connection.inputHandler(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),fromUser);
-	    infoToScreen(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"<"+nickname + "> "+ fromUser);
+	    connection.inputHandler(fromUser);
+	    messageToScreen(nickname, fromUser);
 	    userInputField.setText("");
 	}
     }
-
-    private void switchedTab(ChangeEvent event){
-	currentTab = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-	users = channels.getUsers(currentTab);
-	updateUsers();
-    }
-
     private void newConnection(ActionEvent event) {
         ServerDialog connectionDialog = new ServerDialog();
         if(connectionDialog.getServerName() != null){
             updateStatus(connectionDialog.getServerName());
-	    updateNick(connectionDialog.getNickname());
+	    nickname = connectionDialog.getNickname();
 	    try{
 	        connection = new IRCConnection(this, connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName());
+		//currentParser = new IncomingTrafficParser(this,connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName());
+		//new Thread(currentParser).start();
 	    }
 	    catch (IOException e) {
 		System.out.println("error");
@@ -97,15 +97,23 @@ public class ClientGui extends JFrame
 	updateStatus("chat.freenode.net");
 	try{
 	    connection = new IRCConnection(this,"chat.freenode.net",6667, "Seb__XD", "Seb__XD", "Seb b" );
-	    updateNick("Seb__XD");
 	}
 	catch (IOException e) {
 	    System.out.println("error");
 	}
     }
 
-    public void infoToScreen(String channel, String message) {
-        channels.writeToChannel(channel,message);
+
+
+
+    public void messageToScreen(String sender, String message) {
+	messageBox.append("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] <" + sender + "> " + message + "\n");
+	messageBox.setCaretPosition(messageBox.getDocument().getLength());
+    }
+
+    public void infoToScreen(String message) {
+	messageBox.append("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] " + message + "\n");
+	messageBox.setCaretPosition(messageBox.getDocument().getLength());
     }
 
 
@@ -122,12 +130,13 @@ public class ClientGui extends JFrame
         frame.setJMenuBar(menu);
     }
 
-    public void closeTab(String tabName){
-        channels.removeChannel(tabName);
+    public void newChannel(String channelName){
+	tb.addTab(channelName,new JTextArea());
     }
 
     public static void main(String[] args) {
-	new ClientGui();
+	new ClientGuiOLD();
     }
 
 }
+*/

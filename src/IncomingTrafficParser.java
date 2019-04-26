@@ -1,3 +1,4 @@
+/*
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -43,10 +44,7 @@ public class IncomingTrafficParser implements Runnable
 			switch (messageList.get(1)) {
 			    case "376": //END of MOTD, time to join channel
 				sendServer("JOIN", "#botters-test");
-				Runnable send = new Send(out, gui);
-				new Thread(send).start();
-				break;
-			    case "433":
+			    case "433": //Nickname taken
 			        writeToScreen("Nickname taken!","");
 				System.out.println("Nickname taken!");
 				break;
@@ -90,9 +88,6 @@ public class IncomingTrafficParser implements Runnable
 	out.flush();
     }
 
-    public void disconnect()throws IOException{
-        socket.close();
-        out.close();
-        in.close();
-    }
+
 }
+*/

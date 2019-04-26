@@ -9,7 +9,7 @@ public class ServerDialog extends JFrame
     private String username;
     private String realName;
 
-    //private JFormattedTextField portArea = new JFormattedTextField(createFormatter("######"));
+    //private JFormattedTextField portArea = new JFormattedTextField();
     private JTextField serverArea = new JTextField();
     private JTextField portArea = new JTextField();
     private JTextField nicknameArea = new JTextField();
