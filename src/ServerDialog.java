@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
+import java.awt.*;
 import java.text.NumberFormat;
 import java.util.Objects;
 
@@ -18,15 +19,12 @@ class ServerDialog extends JFrame
     private String nickname = null;
     private String username = null;
     private String realName = null;
-    private final NumberFormat format = NumberFormat.getInstance();
-    private final NumberFormatter numFormatter = new NumberFormatter(format);
-    private JFormattedTextField portArea = new JFormattedTextField(numFormatter);
-    private JTextField serverArea = new JTextField();
-    private JTextField nicknameArea = new JTextField();
-    private JTextField usernameArea = new JTextField();
-    private JTextField realNameArea = new JTextField();
+    private JFormattedTextField portArea;
+    private JTextField serverArea;
+    private JTextField nicknameArea;
+    private JTextField usernameArea;
+    private JTextField realNameArea;
     private boolean succeeded;
-
 
     boolean isSucceeded() {
 	return succeeded;
@@ -35,25 +33,40 @@ class ServerDialog extends JFrame
 
 
     ServerDialog(){
-        succeeded = (Objects.equals(serverArea.getText(), "") || portArea == null ||
-		     Objects.equals(nicknameArea.getText(), "") || Objects.equals(usernameArea.getText(), ""));
-	if((makeDialog() == JOptionPane.OK_OPTION) && succeeded){
-	    serverName = serverArea.getText();
-	    port = Integer.parseInt(portArea.getText());
-	    nickname = nicknameArea.getText();
-	    username = usernameArea.getText();
-	    realName = realNameArea.getText();
-	    System.out.println("You entered: " + serverName + ", "
-			       + port + ", " + nickname + ", "
-			       + username + ", " + realName);
-
-	} else{
+        succeeded = false;
+	int dialogResponse;
+	boolean firstTime = true;
+        while(!succeeded){
+	    dialogResponse = makeDialog(firstTime);
+	    if (dialogResponse != JOptionPane.OK_OPTION){
+	        break;
+	    }
+	    handleDialog();
+	    firstTime = false;
+	}
+        if (!succeeded){
 	    System.out.println("Cancelled");
-	    succeeded = false;
 	}
     }
 
-    private int makeDialog() {
+    private void handleDialog(){
+	if (portArea.getText().equals("")){
+	    port = 0;
+	}else{
+	    port = Integer.parseInt(portArea.getText());
+	}
+	serverName = serverArea.getText();
+	nickname = nicknameArea.getText();
+	username = usernameArea.getText();
+	realName = realNameArea.getText();
+        succeeded = !(Objects.equals(serverName, "") || port == 0 ||
+		     Objects.equals(nickname, "") || Objects.equals(username, ""));
+    }
+
+    private int makeDialog(boolean firstTime) {
+	final NumberFormat format = NumberFormat.getInstance();
+	format.setGroupingUsed(false);
+	final NumberFormatter numFormatter = new NumberFormatter(format);
 	numFormatter.setValueClass(Integer.class);
 	//noinspection AutoBoxing
 	numFormatter.setMinimum(0);
@@ -66,11 +79,21 @@ class ServerDialog extends JFrame
 	nicknameArea = new JTextField();
 	usernameArea = new JTextField();
 	realNameArea = new JTextField();
+	JLabel serverLabel = new JLabel("Enter server name");
+	JLabel portLabel = new JLabel("Enter port number");
+	JLabel nickLabel =  new JLabel("Enter nickname");
+	JLabel userLabel = new JLabel("Enter username");
+	if(!firstTime){
+	    serverLabel.setForeground(Color.RED);
+	    portLabel.setForeground(Color.RED);
+	    nickLabel.setForeground(Color.RED);
+	    userLabel.setForeground(Color.RED);
+	}
 	JComponent[] inputs = new JComponent[] {
-	    new JLabel("Enter server name"), serverArea,
-	    new JLabel("Enter port number"), portArea,
-	    new JLabel("Enter nickname"), nicknameArea,
-	    new JLabel("Enter username"), usernameArea,
+		serverLabel, serverArea,
+	    	portLabel, portArea,
+		nickLabel, nicknameArea,
+		userLabel, usernameArea,
 	    new JLabel("Enter real name*"), realNameArea
 	};
 	return JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.DEFAULT_OPTION);

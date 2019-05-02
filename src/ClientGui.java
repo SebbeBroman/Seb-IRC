@@ -116,6 +116,8 @@ final class ClientGui extends JFrame
 	        connection = new IRCConnection(this, connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName());
 	    }
 	    catch (IOException e) {
+	        channels.writeToChannel(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Could not connect to Host" );
+		updateStatus("Could not connect to Host");
 		System.out.println("error");
 		e.printStackTrace();
 	    }
