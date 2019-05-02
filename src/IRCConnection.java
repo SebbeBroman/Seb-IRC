@@ -6,58 +6,35 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-public class IRCConnection
+class IRCConnection
 {
-    private String serverName;
-    private int port;
-    private String nickname;
-    private String username;
-    private String realName;
-    private static PrintWriter out;
-    private static Scanner in;
-    private static Socket socket;
-    private IncomingTrafficParser2 incomingParser;
-    private ClientGui gui;
+    private static PrintWriter out = null;
+    private static Scanner inputStream = null;
+    private static Socket socket = null;
+    private IncomingTrafficParser incomingParser;
+    private final ClientGui gui;
 
-    public IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
-			 final String realName) throws IOException
+    IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
+		  final String realName) throws IOException
     {
-	this.serverName = serverName;
-	this.port = port;
-	this.nickname = nickname;
-	this.username = username;
-	this.realName = realName;
 	this.gui = gui;
+	createConnection(serverName,port, nickname, username, realName);
+    }
+
+    private void createConnection(String serverName, int port, String nickname, String username, String realName) throws IOException{
 	socket = new Socket(serverName, port);
 	out = new PrintWriter(socket.getOutputStream(), true);
-	in = new Scanner(socket.getInputStream());
+	inputStream = new Scanner(socket.getInputStream());
 	sendServer("NICK " + nickname);
 	sendServer("USER "+username+ " 0 * :"+  realName);
-	incomingParser = new IncomingTrafficParser2(out, in, nickname, gui);
+	incomingParser = new IncomingTrafficParser(out, inputStream, nickname, gui);
 	new Thread(incomingParser).start();
     }
 
-    public static PrintWriter getOut() {
-	return out;
-    }
-
-    public static Scanner getIn() {
-	return in;
-    }
-
-    public String getServerName() {
-	return serverName;
-    }
-
-    public String getNickname() {
-	return nickname;
-    }
-
-
-    public void disconnect()throws IOException{
+    void disconnect()throws IOException{
         socket.close();
         out.close();
-        in.close();
+        inputStream.close();
     }
 
     private void sendServer(String message){
@@ -66,8 +43,9 @@ public class IRCConnection
 	out.flush();
     }
 
-    public void inputHandler(String current, String input){
-	List<String> messageList = new ArrayList<String>(Arrays.asList(input.split(" ")));
+    void inputHandler(String current, String fromUser){
+        String input = fromUser.toLowerCase();
+	List<String> messageList = new ArrayList<>(Arrays.asList(input.split(" ")));
 	String command= input.split(" ")[0];
 	if(input.startsWith("/")){
 	    switch(command){
@@ -75,15 +53,37 @@ public class IRCConnection
 		    sendServer("PRIVMSG "+ messageList.get(1)+ " :" + getRest(messageList, 2));
 		    break;
 		case "/join":
-		    sendServer("JOIN "+ messageList.get(1));
+		    if (messageList.size() > 1){
+			sendServer("JOIN "+ messageList.get(1));
+		    } else{
+		        gui.infoToScreen(current, "USAGE /JOIN #channel");
+		    }
 		    break;
 		case "/part":
-		    sendServer("PART "+ messageList.get(1));
+		    if (messageList.size() < 2){
+		        sendServer("PART "+current);
+		    }
+		    else{
+			sendServer("PART "+ messageList.get(1));
+		    }
+		    break;
 		case "/close":
 		    gui.closeTab(current);
 		    break;
 		case "/names":
-		    sendServer("NAMES " + messageList.get(1));
+		    if (messageList.size() < 2){
+		        sendServer("NAMES "+current);
+		    }
+		    else{
+			sendServer("NAMES "+ messageList.get(1));
+		    }
+		    break;
+		case "/away":
+		    if (messageList.size() < 2){
+		        sendServer("AWAY");
+		    }else{
+			sendServer("AWAY :" + messageList.get(1));
+		    }
 		    break;
 		default:
 		    sendServer(input.substring(1));
@@ -94,11 +94,16 @@ public class IRCConnection
 	}
     }
 
-    private String getRest(List<String> strings, int index){
+    private String getRest(List<String> strings, int index){ // index good to be able to reuse code
         StringBuilder builder = new StringBuilder();
 	for (int i = index; i < strings.size(); i++) {
 	    builder.append(strings.get(i));
 	}
 	return builder.toString();
+    }
+
+
+    void setCurrentChannel(String channel){
+        incomingParser.setCurrentChannel(channel);
     }
 }

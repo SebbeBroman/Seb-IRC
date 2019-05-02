@@ -1,31 +1,27 @@
-/*
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-public class IncomingTrafficParser implements Runnable
+class IncomingTrafficParser implements Runnable
 {
-    private static PrintWriter out;
-    private static Scanner in;
-    private String nick;
-    private String username;
-    private ClientGui gui;
-    private Socket socket;
+    private final PrintWriter out;
+    private final Scanner in;
+    private final String nick;
+    private final ClientGui gui;
+    private String currentChannel;
 
-    public IncomingTrafficParser(ClientGui gui, String server, int port, String nickname, String username, String realName) throws IOException {
-        this.nick = nickname;
-        this.gui = gui;
-	socket = new Socket(server, port);
-	out = new PrintWriter(socket.getOutputStream(), true);
-	in = new Scanner(socket.getInputStream());
-	sendServer("NICK", nick);
-	sendServer("USER", username+ " 0 * :"+  realName);
+    void setCurrentChannel(final String currentChannel) {
+	this.currentChannel = currentChannel;
+    }
+
+    IncomingTrafficParser(final PrintWriter out, final Scanner in, final String nick, final ClientGui gui) {
+	this.out = out;
+	this.in = in;
+	this.nick = nick;
+	this.gui = gui;
+	currentChannel = "Standard";
     }
 
     @Override public void run() {
@@ -34,60 +30,76 @@ public class IncomingTrafficParser implements Runnable
 
     private void parseIncoming() {
 	while(in.hasNext()) {
-		    String serverMessage = in.nextLine();
-		    List<String> messageList = new ArrayList<String>(Arrays.asList(serverMessage.split(" ")));
-		    String sender = serverMessage.split("!")[0].substring(1);
-		    if (messageList.get(0).equals("PING")) {
-			sendServer("PONG", messageList.get(1));
-		    }
-		    else{
-			switch (messageList.get(1)) {
-			    case "376": //END of MOTD, time to join channel
-				sendServer("JOIN", "#botters-test");
-			    case "433": //Nickname taken
-			        writeToScreen("Nickname taken!","");
-				System.out.println("Nickname taken!");
-				break;
-			    case "JOIN":
-				writeToScreen(sender + " joined " , messageList.get(2));
-				break;
-			    case "PART":
-				writeToScreen(sender + " parted ", messageList.get(2));
-				break;
-			    case "QUIT":
-				writeToScreen(sender + " has quit ", messageList.get(2));
-				if(sender.equals(nick)){
-				    System.exit(0);
-				}
-				break;
-			    case "PRIVMSG":
-				//UPDATE THIS
-				writeToScreen("<"+sender + "> "+ serverMessage.split(":")[2],
-					      messageList.get(2));
-				break;
-			    default:
-			        if (serverMessage.split(":").length > 2){
-				    writeToScreen("- "+serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1), messageList.get(2));
-
-				}
+	    String serverMessage = in.nextLine();
+	    System.out.println(serverMessage);
+	    List<String> messageList = new ArrayList<>(Arrays.asList(serverMessage.split(" ")));
+	    String sender = serverMessage.split("!")[0].substring(1);
+	    if (messageList.get(0).equals("PING")) {
+		sendServer("PONG", messageList.get(1));
+	    }
+	    else{
+		switch (messageList.get(1)) {
+		    case "376": //END of MOTD, time to join channel
+			sendServer("JOIN", "#botters-test");
+			break;
+		    case "332":
+			gui.setTopicOfChannel(messageList.get(3), serverMessage.substring(serverMessage.substring(1).indexOf(":")+1));
+			//set topic of channel, message comes in format ":server 332 username channel :topic", using substring to get second ":"
+			break;
+		    case "353": //List of users
+			String userString = serverMessage.split(":")[2];
+			List<String> users = new ArrayList<>(Arrays.asList(userString.split(" ")));
+			for(String user : users){
+			    gui.addUser(user, messageList.get(4));
 			}
-		    }
+			gui.updateUsers();
+			break;
+		    case "366":
+			System.out.println("end of names list");
+			break;
+		    case "433": // nickname taken
+			writeToScreen("Nickname taken!","");
+			System.out.println("Nickname taken!");
+			break;
+		    case "JOIN":
+			writeToScreen(sender + " joined " , messageList.get(2));
+			break;
+		    case "PART":
+			writeToScreen(sender + " parted ", messageList.get(2));
+			gui.disconnectUser(sender);
+			break;
+		    case "QUIT":
+			writeToScreen(sender + " has quit ", messageList.get(2));
+			gui.disconnectUser(sender);
+			if(sender.equals(nick)){
+			    System.exit(0);
+			}
+			break;
+		    case "PRIVMSG":
+			//UPDATE THIS
+			if (messageList.get(2).equals(nick)) {
+			    writeToScreen("<" + sender + "> " + serverMessage.split(":")[2], sender);
+			}else{
+			    writeToScreen("<" + sender + "> " + serverMessage.split(":")[2], messageList.get(2));
+			}
+			break;
+		    default:
+			if (serverMessage.split(":").length > 2){
+			    writeToScreen("- "+serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1), currentChannel);
+
+			}
 		}
+	    }
+	}
     }
 
     private void writeToScreen(final String message, final String channel) {
-	//Update this with gui
-	//System.out.println("From " + channel);
-	gui.infoToScreen(message);
-	System.out.println("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] " + message);
+	gui.infoToScreen(channel,message);
     }
 
-    public void sendServer(final String command, final String parameters) {
+    private void sendServer(final String command, final String parameters) {
 	String fullMessage = command + " " + parameters;
 	out.print(fullMessage + "\r\n");
 	out.flush();
     }
-
-
 }
-*/

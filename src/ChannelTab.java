@@ -1,47 +1,88 @@
+import net.miginfocom.swing.MigLayout;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Vector;
+import java.util.List;
 
-public class ChannelTab
+class ChannelTab
 {
-    private String channel;
+    private final String channel;
 
-    public String getChannel() {
+    String getChannel() {
 	return channel;
     }
 
-    private JTabbedPane parentPane;
-    private JTextArea messageBox = new JTextArea();
-    private JScrollPane messagePane = new JScrollPane(messageBox);
-    private Vector users = new Vector();
+    private final JTabbedPane parentPane;
+    private final JTextArea messageBox = new JTextArea();
+    private final JScrollPane messagePane = new JScrollPane(messageBox);
+    private final List<String> users;
+    private JTextArea topic;
 
-    public ChannelTab(final String channel, final JTabbedPane tb) {
-	this.channel = channel;
-	this.parentPane = tb;
-	messagePane.setPreferredSize(new Dimension(380, 100));
-	messageBox.setLineWrap(true);
-	messageBox.setWrapStyleWord(true);
-	messageBox.setEditable(false);
-	messagePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-	parentPane.addTab(channel, messagePane);
+    void setTopic(final String topic) {
+	this.topic.setText(topic);
+	System.out.println("Ran setTopic in " + channel);
     }
 
-    public void writeToTab(String message){
+    ChannelTab(final String channel, final JTabbedPane tb) {
+	this.channel = channel;
+	this.parentPane = tb;
+	users = new ArrayList<>();
+	setSettings();
+	restoreTab();
+    }
+
+    @SuppressWarnings("unused") private void closeTab(final ActionEvent actionEvent) {
+	//should do this no matter what event, event needed for the listener to work
+	removeTab();
+    }
+
+    void writeToTab(String message){
 	messageBox.append("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] " + message + "\n");
 	messageBox.setCaretPosition(messageBox.getDocument().getLength());
     }
 
-    public void addUser(String username){
-        users.add(username);
+    void addUser(String username){
+        if (!users.contains(username)){
+	    users.add(username);
+	}
     }
 
-    public void removeTab(){
+    void removeTab(){
         parentPane.remove( parentPane.indexOfTab(this.channel));
     }
 
-    public Vector getUsers() {
+    List<String> getUsers() {
 	return users;
+    }
+    void restoreTab(){
+	JPanel tabWindow = new JPanel(new MigLayout("","[grow]","[]10[grow]"));
+	tabWindow.add(topic, "Span 1, grow, wrap");
+	tabWindow.add(messagePane, "Span 1, grow");
+	parentPane.addTab(channel, tabWindow);
+	JButton closeButton = new JButton("x");
+	closeButton.setMargin(new Insets(0, 0, 0, 0));
+	closeButton.setBorder(BorderFactory.createEmptyBorder());
+	closeButton.setToolTipText("close this tab");
+	closeButton.addActionListener(this::closeTab);
+	JPanel panelTab = new JPanel(new MigLayout("","[grow]10[]", "[][]"));
+	panelTab.add(new JLabel(channel),"span 1 2, grow");
+	panelTab.add(closeButton,"span 1 1");
+	panelTab.setOpaque(false);
+	parentPane.setTabComponentAt(parentPane.indexOfTab(channel),panelTab);
+    }
+    private void setSettings(){
+	messagePane.setPreferredSize(new Dimension(600, 300));
+	messageBox.setLineWrap(true);
+	messageBox.setWrapStyleWord(true);
+	messageBox.setEditable(false);
+	messagePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+	topic = new JTextArea("");
+	topic.setEditable(false);
+	topic.setWrapStyleWord(true);
+	topic.setLineWrap(true);
     }
 }

@@ -1,76 +1,91 @@
 import javax.swing.*;
-import javax.swing.text.MaskFormatter;
+import javax.swing.text.NumberFormatter;
+import java.text.NumberFormat;
+import java.util.Objects;
 
-public class ServerDialog extends JFrame
+class ServerDialog extends JFrame
 {
-    private String serverName;
+    private String serverName = null;
     private int port;
-    private String nickname;
-    private String username;
-    private String realName;
-
-    //private JFormattedTextField portArea = new JFormattedTextField();
+    private String nickname = null;
+    private String username = null;
+    private String realName = null;
+    private final NumberFormat format = NumberFormat.getInstance();
+    private final NumberFormatter numFormatter = new NumberFormatter(format);
+    private JFormattedTextField portArea = new JFormattedTextField(numFormatter);
     private JTextField serverArea = new JTextField();
-    private JTextField portArea = new JTextField();
     private JTextField nicknameArea = new JTextField();
     private JTextField usernameArea = new JTextField();
     private JTextField realNameArea = new JTextField();
-    private final JComponent[] inputs = new JComponent[] {
-	    new JLabel("Enter server name"), serverArea,
-	    new JLabel("Enter port number"), portArea,
-	    new JLabel("Enter nickname"), nicknameArea,
-	    new JLabel("Enter username"), usernameArea,
-	    new JLabel("Enter real name*"), realNameArea
-    };
-    public ServerDialog(){
-	int result = JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.PLAIN_MESSAGE);
-	if(result == JOptionPane.OK_OPTION){
-	    System.out.println("You entered: " + serverArea.getText() + ", "
-			       + portArea.getText() + ", " + nicknameArea.getText() + ", "
-			       + usernameArea.getText() + ", " + realNameArea.getText());
+    private boolean succeeded;
+
+
+    boolean isSucceeded() {
+	return succeeded;
+    }
+
+
+
+    ServerDialog(){
+        succeeded = (Objects.equals(serverArea.getText(), "") || portArea == null ||
+		     Objects.equals(nicknameArea.getText(), "") || Objects.equals(usernameArea.getText(), ""));
+	if((makeDialog() == JOptionPane.OK_OPTION) && succeeded){
 	    serverName = serverArea.getText();
 	    port = Integer.parseInt(portArea.getText());
 	    nickname = nicknameArea.getText();
 	    username = usernameArea.getText();
 	    realName = realNameArea.getText();
+	    System.out.println("You entered: " + serverName + ", "
+			       + port + ", " + nickname + ", "
+			       + username + ", " + realName);
+
 	} else{
 	    System.out.println("Cancelled");
+	    succeeded = false;
 	}
     }
 
-    public String getServerName() {
+    private int makeDialog() {
+	numFormatter.setValueClass(Integer.class);
+	//noinspection AutoBoxing
+	numFormatter.setMinimum(0);
+	// noinspection AutoBoxing
+	numFormatter.setMaximum(Integer.MAX_VALUE);
+	numFormatter.setAllowsInvalid(false);
+	numFormatter.setCommitsOnValidEdit(true);
+	portArea = new JFormattedTextField(numFormatter);
+	serverArea = new JTextField();
+	nicknameArea = new JTextField();
+	usernameArea = new JTextField();
+	realNameArea = new JTextField();
+	JComponent[] inputs = new JComponent[] {
+	    new JLabel("Enter server name"), serverArea,
+	    new JLabel("Enter port number"), portArea,
+	    new JLabel("Enter nickname"), nicknameArea,
+	    new JLabel("Enter username"), usernameArea,
+	    new JLabel("Enter real name*"), realNameArea
+	};
+	return JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.DEFAULT_OPTION);
+    }
+
+    String getServerName() {
 	return serverName;
     }
 
-    public int getPort() {
+    int getPort() {
 	return port;
     }
 
-    public String getNickname() {
+    String getNickname() {
 	return nickname;
     }
 
-    public String getUsername() {
+    String getUsername() {
 	return username;
     }
 
-    public String getRealName() {
+    String getRealName() {
 	return realName;
     }
 
-
-    protected MaskFormatter createFormatter(String s) {
-        /*
-        Taken from https://docs.oracle.com/javase/tutorial/uiswing/components/formattedtextfield.html
-        Mask to format text to specify inputs.
-         */
-        MaskFormatter formatter = null;
-        try {
-            formatter = new MaskFormatter(s);
-        } catch (java.text.ParseException exc) {
-            System.err.println("formatter is bad: " + exc.getMessage());
-            System.exit(-1);
-        }
-        return formatter;
-    }
 }
