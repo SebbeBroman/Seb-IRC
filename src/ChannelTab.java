@@ -8,6 +8,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * This class creates tabs on a JTabbedPane, cause each tab contain so much separate information
+ * it's easier to handle in a separate class. All tabs function in the same way but contains
+ * separate messages and user lists.
+ */
+
 class ChannelTab
 {
     private final String channel;

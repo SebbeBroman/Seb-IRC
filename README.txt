@@ -38,12 +38,16 @@ WHO IS on that user, this will also open a private messaging window
 with that user.
 You can also send a private message to a user by writing "/msg User Message".
 
-/part will part the current channel
-/part #channelname will part #channelname
+"/part" will part the current channel
+"/part #channelname" will part #channelname
 
 Closing tabs will not part the channel so if you close a tab and get a new message
 from that channel the tab will reopen.
-/close will also close current tab.
+"/close" will also close current tab.
+
+"/away message*" will send message* to anyone trying to PM you.
+message* specifies that it's what will be sent.
+"/away" will remove this status.
 
 Full list of commands
 https://en.wikipedia.org/wiki/List_of_Internet_Relay_Chat_commands

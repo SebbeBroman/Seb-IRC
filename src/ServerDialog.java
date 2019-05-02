@@ -3,6 +3,14 @@ import javax.swing.text.NumberFormatter;
 import java.text.NumberFormat;
 import java.util.Objects;
 
+/**
+ * This is a DialogWindow that gives has the needed fields to connect to a server.
+ * it has a function isSucceeded that tells you if the dialog was entered properly
+ * but not if the connection to a server was valid.
+ *
+ */
+
+
 class ServerDialog extends JFrame
 {
     private String serverName = null;

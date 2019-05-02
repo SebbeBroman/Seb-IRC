@@ -2,6 +2,10 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is a class that handles all of the ChannelTab's.
+ */
+
 class ChannelTabList
 {
     private final List<ChannelTab> tabs;
