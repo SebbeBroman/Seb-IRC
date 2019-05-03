@@ -117,7 +117,7 @@ final class ClientGui extends JFrame
 	    }
 	    catch (IOException e) {
 	        channels.writeToChannel(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Could not connect to Host" );
-		updateStatus("Could not connect to Host");
+		updateStatus("Failed to connect to host: " + connectionDialog.getServerName());
 		System.out.println("error");
 		e.printStackTrace();
 	    }
@@ -126,14 +126,16 @@ final class ClientGui extends JFrame
     }
     @SuppressWarnings("unused") private void connectFreenode(ActionEvent event) {
 	//should do this no matter what event, event needed for the listener to work
-	updateStatus("chat.freenode.net");
+
 	try{
 	    //noinspection MagicNumber
 	    connection = new IRCConnection(this,"chat.freenode.net",6667, "Seb__XD", "Seb__XD", "Seb b" );
 	    updateNick("Seb__XD");
+	    updateStatus("chat.freenode.net");
 	}
 	catch (IOException e) {
 	    System.out.println("error");
+	    updateStatus("Failed to connect to host: " + "chat.freenode.net");
 	    e.printStackTrace();
 	}
     }
