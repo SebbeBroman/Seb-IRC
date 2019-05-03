@@ -1,3 +1,6 @@
+package GUI;
+
+import Connection.IRCConnection;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -18,7 +21,7 @@ import java.util.List;
  */
 
 
-final class ClientGui extends JFrame
+final public class ClientGui extends JFrame
 {
     private final JFrame frame;
     private String nickname = null;
@@ -29,45 +32,53 @@ final class ClientGui extends JFrame
     private final JLabel status;
     private IRCConnection connection = null;
     private final ChannelTabList channels;
+    private final String FREENODESERVER = "chat.freenode.net";
+    private final int FREENODEPORT = 6667;
 
     private ClientGui() {
-        users = new ArrayList<>();
-	tabbedPane = new JTabbedPane();
-	channels = new ChannelTabList(tabbedPane);
-	userList = new JList<>();
-	final JScrollPane userPane = new JScrollPane(userList);
-	userPane.setPreferredSize(new Dimension(100, 100));
-        userPane.setMinimumSize(new Dimension(50, 50));
-        this.frame = new JFrame("Seb IRC -Client");
-	ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
-	frame.setIconImage(img.getImage());
-        createMenuBar();
-	channels.addChannel(new ChannelTab("Standard", tabbedPane));
-        frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
-        frame.add(tabbedPane, "span 5,grow");
-        frame.add(userPane, "span 2,grow, wrap");
-	userInputField = new JTextField();
-	frame.add(userInputField, "span 5, grow");
-	final JButton sendButton = new JButton("Send");
-	frame.add(sendButton, "span 2, wrap");
-	status = new JLabel("Connected to: None..");
-	frame.add(status, "span 7,grow, wrap");
-	frame.pack();
-	frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-	frame.setVisible(true);
-	tabbedPane.addChangeListener(this::switchedTab);
-	userInputField.addActionListener(this::sendMessage);
-	sendButton.addActionListener(this::sendMessage);
-	userList.addMouseListener(new ActionJList(userList));
+		users = new ArrayList<>();
+		tabbedPane = new JTabbedPane();
+		channels = new ChannelTabList(tabbedPane);
+		userList = new JList<>();
+		final JScrollPane userPane = new JScrollPane(userList);
+		userPane.setPreferredSize(new Dimension(100, 100));
+		userPane.setMinimumSize(new Dimension(50, 50));
+		this.frame = new JFrame("Seb IRC -Client");
+		try{
+			ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
+			frame.setIconImage(img.getImage());
+		} catch (NullPointerException e){
+			// Not a mandatory feature for the program so just log the error
+			// and move on.
+			e.printStackTrace();
+		}
+		createMenuBar();
+		channels.addChannel(new ChannelTab("Standard", tabbedPane));
+		frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
+		frame.add(tabbedPane, "span 5,grow");
+		frame.add(userPane, "span 2,grow, wrap");
+		userInputField = new JTextField();
+		frame.add(userInputField, "span 5, grow");
+		final JButton sendButton = new JButton("Send");
+		frame.add(sendButton, "span 2, wrap");
+		status = new JLabel("Connected to: None..");
+		frame.add(status, "span 7,grow, wrap");
+		frame.pack();
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		tabbedPane.addChangeListener(this::switchedTab);
+		userInputField.addActionListener(this::sendMessage);
+		sendButton.addActionListener(this::sendMessage);
+		userList.addMouseListener(new ActionJList(userList));
     }
 
-    void addUser(String username, String channel){
+    public void addUser(String username, String channel){
         channels.addUser(username, channel);
     }
-    void updateUsers(){
+    public void updateUsers(){
         userList.setListData(users.toArray()); //converts a ArrayList<String> of username to a format JList accepts
     }
-    void disconnectUser(String username){
+    public void disconnectUser(String username){
         boolean removed = users.remove(username);
         if(removed){
 	    System.out.println(username + " was removed from online");
@@ -117,56 +128,55 @@ final class ClientGui extends JFrame
 	    }
 	    catch (IOException e) {
 	        channels.writeToChannel(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Could not connect to Host" );
-		updateStatus("Failed to connect to host: " + connectionDialog.getServerName());
-		System.out.println("error");
-		e.printStackTrace();
+			updateStatus("Failed to connect to host: " + connectionDialog.getServerName());
+			System.out.println("error");
+			e.printStackTrace();
 	    }
 
 	}
     }
     @SuppressWarnings("unused") private void connectFreenode(ActionEvent event) {
-	//should do this no matter what event, event needed for the listener to work
+		//should do this no matter what event, event needed for the listener to work
 
-	try{
-	    //noinspection MagicNumber
-	    connection = new IRCConnection(this,"chat.freenode.net",6667, "Seb__XD", "Seb__XD", "Seb b" );
-	    updateNick("Seb__XD");
-	    updateStatus("chat.freenode.net");
-	}
-	catch (IOException e) {
-	    System.out.println("error");
-	    updateStatus("Failed to connect to host: " + "chat.freenode.net");
-	    e.printStackTrace();
-	}
+		try{
+			connection = new IRCConnection(this,FREENODESERVER,FREENODEPORT, "Seb__XD", "Seb__XD", "Seb b" );
+			updateNick("Seb__XD");
+			updateStatus("chat.freenode.net");
+		}
+		catch (IOException e) {
+			System.out.println("error");
+			updateStatus("Failed to connect to host: " + "chat.freenode.net");
+			e.printStackTrace();
+		}
     }
 
-    void infoToScreen(String channel, String message) {
+    public void infoToScreen(String channel, String message) {
         channels.writeToChannel(channel,message);
     }
 
 
     private void createMenuBar(){
-        JMenuBar menu = new JMenuBar();
-        JMenu connect = new JMenu("Connection");
-        JMenu help = new JMenu("Help");
-	JMenuItem connectTo = new JMenuItem(" Connect to");
-	JMenuItem disconnect = new JMenuItem(" Disconnect");
-	JMenuItem connectToFreenode = new JMenuItem(" Connect to Freenode");
-	JMenuItem getHelp = new JMenuItem("Help");
-	connectTo.setToolTipText("Connects to server of your choice");
-	disconnect.setToolTipText("Disconnects current connection");
-	getHelp.setToolTipText("Click here to open readme file of how it works");
-        connectTo.addActionListener(this::newConnection);
-        disconnect.addActionListener(this::disconnectEvent);
-	connectToFreenode.addActionListener(this::connectFreenode);
-	getHelp.addActionListener(this::openREADME);
-        connect.add(connectTo);
-        connect.add(disconnect);
-        connect.add(connectToFreenode);
-        help.add(getHelp);
-        menu.add(connect);
-        menu.add(help);
-        frame.setJMenuBar(menu);
+		JMenuBar menu = new JMenuBar();
+		JMenu connect = new JMenu("Connection");
+		JMenu help = new JMenu("Help");
+		JMenuItem connectTo = new JMenuItem(" Connect to");
+		JMenuItem disconnect = new JMenuItem(" Disconnect");
+		JMenuItem connectToFreenode = new JMenuItem(" Connect to Freenode");
+		JMenuItem getHelp = new JMenuItem("Help");
+		connectTo.setToolTipText("Connects to server of your choice");
+		disconnect.setToolTipText("Disconnects current connection");
+		getHelp.setToolTipText("Click here to open readme file of how it works");
+		connectTo.addActionListener(this::newConnection);
+		disconnect.addActionListener(this::disconnectEvent);
+		connectToFreenode.addActionListener(this::connectFreenode);
+		getHelp.addActionListener(this::openREADME);
+		connect.add(connectTo);
+		connect.add(disconnect);
+		connect.add(connectToFreenode);
+		help.add(getHelp);
+		menu.add(connect);
+		menu.add(help);
+		frame.setJMenuBar(menu);
     }
 
     @SuppressWarnings("unused") private void openREADME(final ActionEvent actionEvent){
@@ -206,13 +216,11 @@ final class ClientGui extends JFrame
 	}
     }
 
-    void closeTab(String tabName){
+    public void closeTab(String tabName){
         channels.removeChannel(tabName);
     }
 
-    public static void main(String[] args) {
-	new ClientGui();
-    }
+
 
     private final class ActionJList extends MouseAdapter
     {
@@ -237,9 +245,12 @@ final class ClientGui extends JFrame
         }
     }
 
-    void setTopicOfChannel(String channel, String topic){
+    public void setTopicOfChannel(String channel, String topic){
        channels.setTopicOf(channel,topic);
 	System.out.println(topic);
     }
 
+	public static void main(String[] args) {
+		new ClientGui();
+	}
 }

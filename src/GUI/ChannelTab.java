@@ -1,3 +1,5 @@
+package GUI;
+
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;

@@ -1,3 +1,7 @@
+package Connection;
+
+import GUI.ClientGui;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -10,7 +14,7 @@ import java.util.Scanner;
 * This class creates a connection to a server and handles the outgoing traffic to the server.
 * It starts a new thread that parse incoming data from server.
 */
-class IRCConnection
+public class IRCConnection
 {
     private static PrintWriter out = null;
     private static Scanner inputStream = null;
@@ -18,7 +22,7 @@ class IRCConnection
     private IncomingTrafficParser incomingParser;
     private final ClientGui gui;
 
-    IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
+    public IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
 		  final String realName) throws IOException
     {
         //initialize the class
@@ -38,7 +42,7 @@ class IRCConnection
 	new Thread(incomingParser).start();
     }
 
-    void disconnect()throws IOException{
+    public void disconnect()throws IOException{
         //Terminates connection
         socket.close();
         out.close();
@@ -52,7 +56,7 @@ class IRCConnection
 	out.flush();
     }
 
-    void inputHandler(String current, String fromUser){
+    public void inputHandler(String current, String fromUser){
         //Handles all input that goes from the user to the server.
         String input = fromUser.toLowerCase(); // to prevent mistakes with lower and uppercase letters.
 	List<String> messageList = new ArrayList<>(Arrays.asList(input.split(" ")));
@@ -120,8 +124,7 @@ class IRCConnection
 	return builder.toString();
     }
 
-
-    void setCurrentChannel(String channel){
+    public void setCurrentChannel(String channel){
         incomingParser.setCurrentChannel(channel);
     }
 }

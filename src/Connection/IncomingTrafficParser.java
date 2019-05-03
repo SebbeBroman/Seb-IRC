@@ -1,3 +1,7 @@
+package Connection;
+
+import GUI.ClientGui;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,14 +76,18 @@ class IncomingTrafficParser implements Runnable
 			break;
 		    case "JOIN": // someone joined a channel.
 			writeToScreen(sender + " joined " , messageList.get(2));
+			gui.addUser(sender,messageList.get(2));
+			gui.updateUsers();
 			break;
 		    case "PART": // someone left a channel.
 			writeToScreen(sender + " parted ", messageList.get(2));
 			gui.disconnectUser(sender);
+			gui.updateUsers();
 			break;
 		    case "QUIT": // someone quit. If this is user, exit client.
 			writeToScreen(sender + " has quit ", messageList.get(2));
 			gui.disconnectUser(sender);
+			gui.updateUsers();
 			if(sender.equals(nick)){
 			    System.exit(0);
 			}
