@@ -1,32 +1,34 @@
 package GUI;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class ConnectStandardError extends ConnectWindow
 {
-    @Override String getServerName() {
-	return null;
+    ConnectStandardError(){
+	while(!succeeded){
+	    int dialogResponse = makeDialog();
+	    if (dialogResponse != JOptionPane.OK_OPTION){
+	        break;
+	    }
+	    handleDialog();
+	}
+	if (!succeeded){
+	    System.out.println("Cancelled");
+	}
     }
 
-    @Override int getPort() {
-	return 0;
-    }
 
-    @Override String getNickname() {
-	return null;
-    }
-
-    @Override String getUsername() {
-	return null;
-    }
-
-    @Override String getRealName() {
-	return null;
-    }
-
-    @Override void handleDialog() {
-
-    }
-
-    @Override int makeDialog() {
-	return 0;
+    private int makeDialog() {
+	succeeded = false;
+	setLabelColor(Color.RED, makeStandardFields());
+	JComponent[] inputs = new JComponent[] {error,
+	serverLabel, serverArea,
+	portLabel, portArea,
+	nickLabel, nicknameArea,
+	userLabel, usernameArea,
+	new JLabel("Enter real name*"), realNameArea
+	};
+	return JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.DEFAULT_OPTION);
     }
 }

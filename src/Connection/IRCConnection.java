@@ -23,19 +23,22 @@ public class IRCConnection
     private final ClientGui gui;
 
     public IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
-		  final String realName) throws IOException
+		  final String realName, final String pass) throws IOException
     {
         //initialize the class
 	this.gui = gui;
-	createConnection(serverName,port, nickname, username, realName);
+	createConnection(serverName,port, nickname, username, realName, pass);
     }
 
-    private void createConnection(String serverName, int port, String nickname, String username, String realName) throws IOException
+    private void createConnection(String serverName, int port, String nickname, String username, String realName, String pass) throws IOException
     {
         //created the connection with given variables
 	socket = new Socket(serverName, port);
 	out = new PrintWriter(socket.getOutputStream(), true);
 	inputStream = new Scanner(socket.getInputStream());
+	if (!pass.isEmpty()){
+	    sendServer("PASS "+ pass);
+	}
 	sendServer("NICK " + nickname);
 	sendServer("USER "+username+ " 0 * :"+  realName);
 	incomingParser = new IncomingTrafficParser(out, inputStream, nickname, gui);
@@ -66,6 +69,7 @@ public class IRCConnection
 	    switch(command){
 		case "/msg": // The message command.
 		    sendServer("PRIVMSG "+ messageList.get(1)+ " :" + getRest(messageList, 2));
+		    gui.infoToScreen(messageList.get(1), getRest(messageList, 2));
 		    break;
 		case "/join": // Join a channel
 		    if (messageList.size() > 1){

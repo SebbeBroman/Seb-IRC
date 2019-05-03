@@ -36,40 +36,40 @@ final public class ClientGui extends JFrame
     private final int FREENODEPORT = 6667;
 
     private ClientGui() {
-		users = new ArrayList<>();
-		tabbedPane = new JTabbedPane();
-		channels = new ChannelTabList(tabbedPane);
-		userList = new JList<>();
-		final JScrollPane userPane = new JScrollPane(userList);
-		userPane.setPreferredSize(new Dimension(100, 100));
-		userPane.setMinimumSize(new Dimension(50, 50));
-		this.frame = new JFrame("Seb IRC -Client");
-		try{
-			ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
-			frame.setIconImage(img.getImage());
-		} catch (NullPointerException e){
-			// Not a mandatory feature for the program so just log the error
-			// and move on.
-			e.printStackTrace();
-		}
-		createMenuBar();
-		channels.addChannel(new ChannelTab("Standard", tabbedPane));
-		frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
-		frame.add(tabbedPane, "span 5,grow");
-		frame.add(userPane, "span 2,grow, wrap");
-		userInputField = new JTextField();
-		frame.add(userInputField, "span 5, grow");
-		final JButton sendButton = new JButton("Send");
-		frame.add(sendButton, "span 2, wrap");
-		status = new JLabel("Connected to: None..");
-		frame.add(status, "span 7,grow, wrap");
-		frame.pack();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-		tabbedPane.addChangeListener(this::switchedTab);
-		userInputField.addActionListener(this::sendMessage);
-		sendButton.addActionListener(this::sendMessage);
-		userList.addMouseListener(new ActionJList(userList));
+	users = new ArrayList<>();
+	tabbedPane = new JTabbedPane();
+	channels = new ChannelTabList(tabbedPane);
+	userList = new JList<>();
+	final JScrollPane userPane = new JScrollPane(userList);
+	userPane.setPreferredSize(new Dimension(100, 100));
+	userPane.setMinimumSize(new Dimension(50, 50));
+	this.frame = new JFrame("Seb IRC -Client");
+	try{
+		ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
+		frame.setIconImage(img.getImage());
+	} catch (NullPointerException e){
+		// Not a mandatory feature for the program so just log the error
+		// and move on.
+		e.printStackTrace();
+	}
+	createMenuBar();
+	channels.addChannel(new ChannelTab("Standard", tabbedPane));
+	frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
+	frame.add(tabbedPane, "span 5,grow");
+	frame.add(userPane, "span 2,grow, wrap");
+	userInputField = new JTextField();
+	frame.add(userInputField, "span 5, grow");
+	final JButton sendButton = new JButton("Send");
+	frame.add(sendButton, "span 2, wrap");
+	status = new JLabel("Connected to: None..");
+	frame.add(status, "span 7,grow, wrap");
+	frame.pack();
+	frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	frame.setVisible(true);
+	tabbedPane.addChangeListener(this::switchedTab);
+	userInputField.addActionListener(this::sendMessage);
+	sendButton.addActionListener(this::sendMessage);
+	userList.addMouseListener(new ActionJList(userList));
     }
 
     public void addUser(String username, String channel){
@@ -119,12 +119,18 @@ final public class ClientGui extends JFrame
 
     @SuppressWarnings("unused") private void newConnection(ActionEvent event) {
 	//should do this no matter what event, event needed for the listener to work
-        ServerDialog connectionDialog = new ServerDialog();
+	System.out.println(event.getActionCommand() );
+	ConnectWindow connectionDialog;
+	if(event.getActionCommand().equals("ConnectStandard")){
+	    connectionDialog = new ConnectStandard();
+	}else{
+	    connectionDialog = new ConnectWithPass();
+	}
         if(connectionDialog.isSucceeded()){
             updateStatus(connectionDialog.getServerName());
 	    updateNick(connectionDialog.getNickname());
 	    try{
-	        connection = new IRCConnection(this, connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName());
+	        connection = new IRCConnection(this, connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName(),connectionDialog.getPassword());
 	    }
 	    catch (IOException e) {
 	        channels.writeToChannel(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Could not connect to Host" );
@@ -139,7 +145,7 @@ final public class ClientGui extends JFrame
 		//should do this no matter what event, event needed for the listener to work
 
 		try{
-			connection = new IRCConnection(this,FREENODESERVER,FREENODEPORT, "Seb__XD", "Seb__XD", "Seb b" );
+			connection = new IRCConnection(this,FREENODESERVER,FREENODEPORT, "Seb__XD", "Seb__XD", "Seb b" ,"");
 			updateNick("Seb__XD");
 			updateStatus("chat.freenode.net");
 		}
@@ -160,17 +166,23 @@ final public class ClientGui extends JFrame
 		JMenu connect = new JMenu("Connection");
 		JMenu help = new JMenu("Help");
 		JMenuItem connectTo = new JMenuItem(" Connect to");
+		JMenuItem connectToProtected = new JMenuItem(" Connect to protected server");
 		JMenuItem disconnect = new JMenuItem(" Disconnect");
 		JMenuItem connectToFreenode = new JMenuItem(" Connect to Freenode");
 		JMenuItem getHelp = new JMenuItem("Help");
+		connectToProtected.setToolTipText("Connects to a password protected server of your choice");
 		connectTo.setToolTipText("Connects to server of your choice");
 		disconnect.setToolTipText("Disconnects current connection");
 		getHelp.setToolTipText("Click here to open readme file of how it works");
 		connectTo.addActionListener(this::newConnection);
+		connectTo.setActionCommand("ConnectStandard");
+		connectToProtected.addActionListener(this::newConnection);
+		connectToProtected.setActionCommand("ConnectProtected");
 		disconnect.addActionListener(this::disconnectEvent);
 		connectToFreenode.addActionListener(this::connectFreenode);
 		getHelp.addActionListener(this::openREADME);
 		connect.add(connectTo);
+		connect.add(connectToProtected);
 		connect.add(disconnect);
 		connect.add(connectToFreenode);
 		help.add(getHelp);
@@ -222,26 +234,29 @@ final public class ClientGui extends JFrame
 
 
 
-    private final class ActionJList extends MouseAdapter
+    private final class ActionJList extends MouseAdapter //changed to private and final
     {
-        private final JList<Object> list;
-
-        private ActionJList(JList<Object> l) {
-    	list = l;
+	/**
+	 * Copied from
+	 * https://www.rgagnon.com/javadetails/java-0219.html
+	 * and modified to send /WHOIS to the username that was clicked on.
+	 * It changes the selected tab to be a PM to the person clicked on.
+	 */
+	private final JList<Object> list; //changed to private and final
+        private ActionJList(JList<Object> l) { //changed to private
+    		list = l;
         }
-
         public void mouseClicked(MouseEvent e) {
-    	if (e.getClickCount() == 2) {
-	    //Enters when dblclick
-    	    int index = list.locationToIndex(e.getPoint());
-    	    ListModel<Object> dlm = list.getModel();
-    	    String item = dlm.getElementAt(index).toString();
-    	    list.ensureIndexIsVisible(index);
-    	    System.out.println("Double clicked on " + item);
-    	    channels.writeToChannel(item, "/WHOIS " + item);
-    	    tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(item));
-	    connection.inputHandler(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"/WHOIS " + item);
-    	}
+	    if (e.getClickCount() == 2) {
+		//Enters when double click.
+		int index = list.locationToIndex(e.getPoint());
+		ListModel<Object> dlm = list.getModel();
+		String item = dlm.getElementAt(index).toString();
+		list.ensureIndexIsVisible(index);
+		channels.writeToChannel(item, "/WHOIS " + item); //Added
+		tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(item)); // Added
+		connection.inputHandler(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"/WHOIS " + item); //Added
+	    }
         }
     }
 

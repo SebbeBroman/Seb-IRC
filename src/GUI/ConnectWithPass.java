@@ -1,32 +1,45 @@
 package GUI;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class ConnectWithPass extends ConnectWindow
 {
-    @Override String getServerName() {
-	return null;
+
+    ConnectWithPass(){
+        int dialogResponse = makeDialog();
+        if(dialogResponse == JOptionPane.OK_OPTION){
+	    handleDialog();
+	    succeeded = succeeded && !passwordArea.getText().isEmpty();
+	    if (succeeded){
+		System.out.println("Success");
+	    }else{
+		ConnectWithPassError errorWindow = new ConnectWithPassError();
+		succeeded = errorWindow.isSucceeded();
+		while(!succeeded){
+		    errorWindow = new ConnectWithPassError();
+		    succeeded = errorWindow.isSucceeded();
+		}
+		password = errorWindow.getPassword();
+		serverName = errorWindow.getServerName();
+		port = errorWindow.getPort();
+		username = errorWindow.getUsername();
+		nickname = errorWindow.getNickname();
+		realName = errorWindow.getRealName();
+	    }
+	}
     }
 
-    @Override int getPort() {
-	return 0;
-    }
-
-    @Override String getNickname() {
-	return null;
-    }
-
-    @Override String getUsername() {
-	return null;
-    }
-
-    @Override String getRealName() {
-	return null;
-    }
-
-    @Override void handleDialog() {
-
-    }
-
-    @Override int makeDialog() {
-	return 0;
+    private int makeDialog() {
+	succeeded = false;
+	setLabelColor(Color.BLACK, makeStandardFields());
+	JComponent[] inputs = new JComponent[] {
+		passLabel, passwordArea,
+		serverLabel, serverArea,
+		portLabel, portArea,
+		nickLabel, nicknameArea,
+		userLabel, usernameArea,
+	new JLabel("Enter real name*"), realNameArea};
+	return JOptionPane.showConfirmDialog(null, inputs, "New connection, password protected", JOptionPane.DEFAULT_OPTION);
     }
 }
