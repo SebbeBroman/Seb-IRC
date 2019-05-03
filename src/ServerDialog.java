@@ -19,12 +19,12 @@ class ServerDialog extends JFrame
     private String nickname = null;
     private String username = null;
     private String realName = null;
-    private JFormattedTextField portArea;
-    private JTextField serverArea;
-    private JTextField nicknameArea;
-    private JTextField usernameArea;
-    private JTextField realNameArea;
-    private boolean succeeded;
+    private JFormattedTextField portArea = null;
+    private JTextField serverArea = null;
+    private JTextField nicknameArea = null;
+    private JTextField usernameArea = null;
+    private JTextField realNameArea = null;
+    private volatile boolean succeeded;
 
     boolean isSucceeded() {
 	return succeeded;
@@ -34,10 +34,9 @@ class ServerDialog extends JFrame
 
     ServerDialog(){
         succeeded = false;
-	int dialogResponse;
 	boolean firstTime = true;
         while(!succeeded){
-	    dialogResponse = makeDialog(firstTime);
+	    int dialogResponse = makeDialog(firstTime);
 	    if (dialogResponse != JOptionPane.OK_OPTION){
 	        break;
 	    }
@@ -50,7 +49,7 @@ class ServerDialog extends JFrame
     }
 
     private void handleDialog(){
-	if (portArea.getText().equals("")){
+	if (portArea.getText().isEmpty()){
 	    port = 0;
 	}else{
 	    port = Integer.parseInt(portArea.getText());

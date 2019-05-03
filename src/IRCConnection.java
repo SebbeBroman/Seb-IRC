@@ -26,7 +26,8 @@ class IRCConnection
 	createConnection(serverName,port, nickname, username, realName);
     }
 
-    private void createConnection(String serverName, int port, String nickname, String username, String realName) throws IOException{
+    private void createConnection(String serverName, int port, String nickname, String username, String realName) throws IOException
+    {
         //created the connection with given variables
 	socket = new Socket(serverName, port);
 	out = new PrintWriter(socket.getOutputStream(), true);
