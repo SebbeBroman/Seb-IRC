@@ -1,13 +1,16 @@
-package GUI;
+package gui;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class ConnectStandard extends ConnectWindow
-{
+/**
+ * connection dialog that lets user enter info
+ */
 
+class ConnectStandard extends ConnectWindow
+{
     ConnectStandard(){
-        int dialogResponse = makeDialog();
+	int dialogResponse = makeDialog();
         if(dialogResponse == JOptionPane.OK_OPTION){
 	    handleDialog();
 
@@ -16,9 +19,11 @@ public class ConnectStandard extends ConnectWindow
 	    }else{
 		ConnectStandardError errorWindow = new ConnectStandardError();
 		succeeded = errorWindow.isSucceeded();
-		while(!succeeded){
+		cancelled = errorWindow.isCancelled();
+		while(!succeeded && !cancelled){
 		    errorWindow = new ConnectStandardError();
 		    succeeded = errorWindow.isSucceeded();
+		    cancelled = errorWindow.isCancelled();
 		}
 		serverName = errorWindow.getServerName();
 		port = errorWindow.getPort();
@@ -26,19 +31,22 @@ public class ConnectStandard extends ConnectWindow
 		nickname = errorWindow.getNickname();
 		realName = errorWindow.getRealName();
 	    }
+	}else{
+	    cancelled = true;
 	}
     }
 
 
     private int makeDialog() {
         succeeded = false;
+	cancelled = false;
 	setLabelColor(Color.BLACK, makeStandardFields());
 	JComponent[] inputs = new JComponent[] {
 		serverLabel, serverArea,
 	    	portLabel, portArea,
 		nickLabel, nicknameArea,
 		userLabel, usernameArea,
-	    new JLabel("Enter real name*"), realNameArea
+	    realnameLabel, realNameArea
 	};
 	return JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.DEFAULT_OPTION);
     }

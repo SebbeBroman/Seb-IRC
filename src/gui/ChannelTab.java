@@ -1,4 +1,4 @@
-package GUI;
+package gui;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -44,7 +44,7 @@ class ChannelTab
 	restoreTab();
     }
 
-    @SuppressWarnings("unused") private void closeTab(final ActionEvent actionEvent) {
+    private void closeTab(final ActionEvent actionEvent) {
 	//should do this no matter what event, event needed for the listener to work
 	removeTab();
     }

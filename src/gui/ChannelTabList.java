@@ -1,11 +1,11 @@
-package GUI;
+package gui;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is a class that handles all of the GUI.ChannelTab's.
+ * This is a class that handles all of the gui.ChannelTab's.
  */
 
 class ChannelTabList

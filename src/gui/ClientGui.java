@@ -1,6 +1,6 @@
-package GUI;
+package gui;
 
-import Connection.IRCConnection;
+import connection.IRCConnection;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -10,14 +10,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
- * This class handles the GUI and all interactions with the user.
+ * This class handles the gui and all interactions with the user.
  */
 
 
@@ -32,10 +34,16 @@ final public class ClientGui extends JFrame
     private final JLabel status;
     private IRCConnection connection = null;
     private final ChannelTabList channels;
-    private final String FREENODESERVER = "chat.freenode.net";
-    private final int FREENODEPORT = 6667;
+    private static final String FREENODESERVER = "chat.freenode.net";
+    private static final int FREENODEPORT = 6667;
+    private String currentTab;
+    private  JButton sendButton;
+    private final static Logger LOGGER = Logger.getLogger(ClientGui.class.getName());
+    private static FileHandler loggingFileHandler = null;
+
 
     private ClientGui() {
+        initLogger("ClientGui");
 	users = new ArrayList<>();
 	tabbedPane = new JTabbedPane();
 	channels = new ChannelTabList(tabbedPane);
@@ -48,29 +56,45 @@ final public class ClientGui extends JFrame
 		ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
 		frame.setIconImage(img.getImage());
 	} catch (NullPointerException e){
-		// Not a mandatory feature for the program so just log the error
-		// and move on.
-		e.printStackTrace();
+	    // Not a mandatory feature for the program so just log the error
+	    // and move on.
+	    LOGGER.log(Level.INFO, String.valueOf(e), e);
 	}
 	createMenuBar();
 	channels.addChannel(new ChannelTab("Standard", tabbedPane));
+	currentTab = "Standard";
 	frame.setLayout(new MigLayout("","[][][][][grow][][]", "[grow][][]"));
 	frame.add(tabbedPane, "span 5,grow");
 	frame.add(userPane, "span 2,grow, wrap");
 	userInputField = new JTextField();
 	frame.add(userInputField, "span 5, grow");
-	final JButton sendButton = new JButton("Send");
+	sendButton = new JButton("Send");
 	frame.add(sendButton, "span 2, wrap");
 	status = new JLabel("Connected to: None..");
 	frame.add(status, "span 7,grow, wrap");
 	frame.pack();
 	frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    private void start(){
 	frame.setVisible(true);
 	tabbedPane.addChangeListener(this::switchedTab);
 	userInputField.addActionListener(this::sendMessage);
 	sendButton.addActionListener(this::sendMessage);
 	userList.addMouseListener(new ActionJList(userList));
     }
+
+    protected static void initLogger(String logName){
+        //Initialize the logger.
+	 try {
+	    loggingFileHandler=new FileHandler(logName+".log", false);
+	 } catch (SecurityException | IOException e) {
+	    e.printStackTrace();
+	 }
+	 Logger l = Logger.getLogger("");
+	 loggingFileHandler.setFormatter(new SimpleFormatter());
+	 l.addHandler(loggingFileHandler);
+     }
 
     public void addUser(String username, String channel){
         channels.addUser(username, channel);
@@ -93,7 +117,7 @@ final public class ClientGui extends JFrame
         this.nickname = nickname;
     }
 
-    @SuppressWarnings("unused") private void sendMessage(ActionEvent event){
+    private void sendMessage(ActionEvent event){
 	//should do this no matter what event, event needed for the listener to work
 	String fromUser = userInputField.getText();
 	if (fromUser != null) {
@@ -103,27 +127,25 @@ final public class ClientGui extends JFrame
 	}
     }
 
-    @SuppressWarnings("unused") private void switchedTab(ChangeEvent event){
+    private void switchedTab(ChangeEvent event){
 	//should do this no matter what event, event needed for the listener to work
 	if(tabbedPane.getTabCount()<1){ // all tabs closed, disconnect
 	    disconnect();
 	    updateStatus("Disconnected");
 	}else{
-	    final String currentTab = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
-	    connection.setCurrentChannel(currentTab);
+	    currentTab = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
 	    users = channels.getUsers(currentTab);
 	    updateUsers();
 	}
 
     }
 
-    @SuppressWarnings("unused") private void newConnection(ActionEvent event) {
-	//should do this no matter what event, event needed for the listener to work
+    private void newConnection(ActionEvent event) {
 	System.out.println(event.getActionCommand() );
 	ConnectWindow connectionDialog;
 	if(event.getActionCommand().equals("ConnectStandard")){
 	    connectionDialog = new ConnectStandard();
-	}else{
+	}else{ // Only enters on 2 occasions so if not ConnectStandard this is the pressed tab.
 	    connectionDialog = new ConnectWithPass();
 	}
         if(connectionDialog.isSucceeded()){
@@ -132,16 +154,20 @@ final public class ClientGui extends JFrame
 	    try{
 	        connection = new IRCConnection(this, connectionDialog.getServerName(), connectionDialog.getPort(), connectionDialog.getNickname(), connectionDialog.getUsername(), connectionDialog.getRealName(),connectionDialog.getPassword());
 	    }
+	    catch(UnknownHostException i){
+	        channels.writeToChannel(currentTab,"Unknown host" );
+		updateStatus("Unknown Host: " + connectionDialog.getServerName());
+		LOGGER.log(Level.INFO, i.toString(), i);
+	    }
 	    catch (IOException e) {
-	        channels.writeToChannel(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Could not connect to Host" );
-			updateStatus("Failed to connect to host: " + connectionDialog.getServerName());
-			System.out.println("error");
-			e.printStackTrace();
+	        channels.writeToChannel(currentTab,"Could not connect to Host" );
+		updateStatus("Failed to connect to host: " + connectionDialog.getServerName());
+		LOGGER.log(Level.WARNING, String.valueOf(e), e);
 	    }
 
 	}
     }
-    @SuppressWarnings("unused") private void connectFreenode(ActionEvent event) {
+    private void connectFreenode(ActionEvent event) {
 		//should do this no matter what event, event needed for the listener to work
 
 		try{
@@ -149,10 +175,14 @@ final public class ClientGui extends JFrame
 			updateNick("Seb__XD");
 			updateStatus("chat.freenode.net");
 		}
+		catch(UnknownHostException i){
+		    updateStatus("Unknown Host: " + "chat.freenode.net");
+		    LOGGER.log(Level.INFO, i.toString(), i);
+		}
 		catch (IOException e) {
-			System.out.println("error");
 			updateStatus("Failed to connect to host: " + "chat.freenode.net");
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, e.toString(), e);
+			//e.printStackTrace();
 		}
     }
 
@@ -191,28 +221,17 @@ final public class ClientGui extends JFrame
 		frame.setJMenuBar(menu);
     }
 
-    @SuppressWarnings("unused") private void openREADME(final ActionEvent actionEvent){
+    private void openREADME(final ActionEvent actionEvent){
 	//should do this no matter what event, event needed for the listener to work
-	JFrame readme = new JFrame("README.txt");
-	readme.setPreferredSize(new Dimension(500,700));
-	String text = "Could not find README";
-	try{
-	    text = Files.readString(Paths.get("README.txt"), Charset.defaultCharset());
-	}catch(IOException e){
-	    e.printStackTrace();
+	README info = new README();
+	if(info.isRead()){
+	    infoToScreen(currentTab, "Read README.");
+	}else{
+	    infoToScreen(currentTab, "Could not read README, please check if the file exists.");
 	}
-	JTextArea readmeTextField = new JTextArea(text);
-	readmeTextField.setLineWrap(true);
-	readmeTextField.setWrapStyleWord(true);
-	readmeTextField.setEditable(false);
-        readmeTextField.setPreferredSize(new Dimension(400,850));
-        final JScrollPane scrollPane = new JScrollPane(readmeTextField);
-        readme.add(scrollPane);
-        readme.pack();
-	readme.setVisible(true);
     }
 
-    @SuppressWarnings("unused") private void disconnectEvent(final ActionEvent actionEvent){
+    private void disconnectEvent(final ActionEvent actionEvent){
         //should do this no matter what event, event needed for the listener to work
         disconnect();
     }
@@ -224,7 +243,7 @@ final public class ClientGui extends JFrame
 		updateStatus("Disconnected");
 	    }
 	} catch (IOException e) {
-	    e.printStackTrace(); // Should not get here so just print stacktrace if error occurs
+	    LOGGER.log(Level.INFO, String.valueOf(e), e);
 	}
     }
 
@@ -248,7 +267,7 @@ final public class ClientGui extends JFrame
         }
         public void mouseClicked(MouseEvent e) {
 	    if (e.getClickCount() == 2) {
-		//Enters when double click.
+		//Enters when double clicked.
 		int index = list.locationToIndex(e.getPoint());
 		ListModel<Object> dlm = list.getModel();
 		String item = dlm.getElementAt(index).toString();
@@ -260,12 +279,17 @@ final public class ClientGui extends JFrame
         }
     }
 
+    public String getCurrentTab() {
+	return currentTab;
+    }
+
     public void setTopicOfChannel(String channel, String topic){
        channels.setTopicOf(channel,topic);
 	System.out.println(topic);
     }
 
 	public static void main(String[] args) {
-		new ClientGui();
+		ClientGui gui = new ClientGui();
+		gui.start();
 	}
 }

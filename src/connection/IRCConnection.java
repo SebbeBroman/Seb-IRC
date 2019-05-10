@@ -1,10 +1,11 @@
-package Connection;
+package connection;
 
-import GUI.ClientGui;
+import gui.ClientGui;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,21 +17,21 @@ import java.util.Scanner;
 */
 public class IRCConnection
 {
-    private static PrintWriter out = null;
-    private static Scanner inputStream = null;
-    private static Socket socket = null;
-    private IncomingTrafficParser incomingParser;
+    private PrintWriter out = null;
+    private Scanner inputStream = null;
+    private Socket socket = null;
     private final ClientGui gui;
 
     public IRCConnection(final ClientGui gui, final String serverName, final int port, final String nickname, final String username,
-		  final String realName, final String pass) throws IOException
+		  final String realName, final String pass) throws IOException, UnknownHostException
     {
         //initialize the class
 	this.gui = gui;
 	createConnection(serverName,port, nickname, username, realName, pass);
     }
 
-    private void createConnection(String serverName, int port, String nickname, String username, String realName, String pass) throws IOException
+    private void createConnection(String serverName, int port, String nickname, String username, String realName, String pass) throws IOException,
+	    UnknownHostException
     {
         //created the connection with given variables
 	socket = new Socket(serverName, port);
@@ -41,7 +42,7 @@ public class IRCConnection
 	}
 	sendServer("NICK " + nickname);
 	sendServer("USER "+username+ " 0 * :"+  realName);
-	incomingParser = new IncomingTrafficParser(out, inputStream, nickname, gui);
+	final IncomingTrafficParser incomingParser = new IncomingTrafficParser(out, inputStream, nickname, gui);
 	new Thread(incomingParser).start();
     }
 
@@ -114,11 +115,11 @@ public class IRCConnection
 	    }
 	} else {
 	    //If there is no "/" the server will treat input as message to current.
-	    sendServer("PRIVMSG "+ current + " :" + input);
+	    sendServer("PRIVMSG "+ current + " :" + fromUser);
 	}
     }
 
-    private String getRest(List<String> strings, int index){ // index good to be able to reuse code
+    protected static String getRest(List<String> strings, int index){ // index good to be able to reuse code
         //Simply returns a concatenated string from a list of strings where all items
 	//before the index will be discarded.
         StringBuilder builder = new StringBuilder();
@@ -128,7 +129,4 @@ public class IRCConnection
 	return builder.toString();
     }
 
-    public void setCurrentChannel(String channel){
-        incomingParser.setCurrentChannel(channel);
-    }
 }

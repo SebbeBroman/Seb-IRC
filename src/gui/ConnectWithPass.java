@@ -1,7 +1,11 @@
-package GUI;
+package gui;
 
 import javax.swing.*;
 import java.awt.*;
+
+/**
+ * connection dialog that lets user enter info
+ */
 
 public class ConnectWithPass extends ConnectWindow
 {
@@ -16,9 +20,11 @@ public class ConnectWithPass extends ConnectWindow
 	    }else{
 		ConnectWithPassError errorWindow = new ConnectWithPassError();
 		succeeded = errorWindow.isSucceeded();
-		while(!succeeded){
+		cancelled = errorWindow.isCancelled();
+		while(!succeeded && !cancelled){
 		    errorWindow = new ConnectWithPassError();
 		    succeeded = errorWindow.isSucceeded();
+		    cancelled = errorWindow.isCancelled();
 		}
 		password = errorWindow.getPassword();
 		serverName = errorWindow.getServerName();
@@ -27,11 +33,14 @@ public class ConnectWithPass extends ConnectWindow
 		nickname = errorWindow.getNickname();
 		realName = errorWindow.getRealName();
 	    }
+	}else{
+	    cancelled = true;
 	}
     }
 
     private int makeDialog() {
 	succeeded = false;
+	cancelled = false;
 	setLabelColor(Color.BLACK, makeStandardFields());
 	JComponent[] inputs = new JComponent[] {
 		passLabel, passwordArea,
@@ -39,7 +48,7 @@ public class ConnectWithPass extends ConnectWindow
 		portLabel, portArea,
 		nickLabel, nicknameArea,
 		userLabel, usernameArea,
-	new JLabel("Enter real name*"), realNameArea};
+		realnameLabel, realNameArea};
 	return JOptionPane.showConfirmDialog(null, inputs, "New connection, password protected", JOptionPane.DEFAULT_OPTION);
     }
 }
