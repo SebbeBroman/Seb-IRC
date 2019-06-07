@@ -15,12 +15,12 @@ import static gui.ClientGui.initLogger;
  * Simple class that reads a text file and opens a new frame to show the text.
  */
 
-class README
+public class README
 {
     private boolean read;
     private final static Logger LOGGER = Logger.getLogger(README.class.getName());
 
-    README() {
+    protected README() {
 	initLogger("README");
 	JFrame readme = new JFrame("README.txt");
 	readme.setPreferredSize(new Dimension(500, 700));
@@ -44,7 +44,7 @@ class README
 	readme.setVisible(true);
     }
 
-    boolean isRead() {
+    protected boolean isRead() {
 	return read;
     }
 }

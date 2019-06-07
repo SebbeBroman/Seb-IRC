@@ -8,24 +8,24 @@ import java.util.List;
  * This is a class that handles all of the gui.ChannelTab's.
  */
 
-class ChannelTabList
+public class ChannelTabList
 {
     private final List<ChannelTab> tabs;
     private final List<String> channelNames;
     private final JTabbedPane parentPane;
 
-    ChannelTabList(JTabbedPane tb) {
+    protected ChannelTabList(JTabbedPane tb) {
 	this.tabs = new ArrayList<>(); // Unchecked assignment, but since its empty there is no problem
 	this.channelNames = new ArrayList<>(); //Same "issue"
         this.parentPane = tb;
     }
 
-    void addChannel(ChannelTab tab){
+    protected void addChannel(ChannelTab tab){
         tabs.add(tab);
         channelNames.add(tab.getChannel());
     }
 
-    void setTopicOf(String channel, String topic){
+    protected void setTopicOf(String channel, String topic){
         checkIfExist(channel);
         tabs.get(channelNames.indexOf(channel)).setTopic(topic);
     }
@@ -40,23 +40,23 @@ class ChannelTabList
         }
     }
 
-    void removeChannel(String name){
+    protected void removeChannel(String name){
         int index = channelNames.indexOf(name);
         tabs.get(index).removeTab();
         tabs.remove(index);
         channelNames.remove(index);
     }
 
-    void writeToChannel(String channel, String message){
+    protected void writeToChannel(String channel, String message){
         checkIfExist(channel);
         tabs.get(channelNames.indexOf(channel)).writeToTab(message);
     }
 
-    void addUser(String user, String channel){
+    protected void addUser(String user, String channel){
         tabs.get(channelNames.indexOf(channel)).addUser(user);
     }
 
-    List<String> getUsers(String channel){
+    protected List<String> getUsers(String channel){
         return tabs.get(channelNames.indexOf(channel)).getUsers();
     }
 

@@ -14,14 +14,14 @@ import java.util.Scanner;
  * The class will give the gui information to print.
  * It will also respond to IRC PINGs.
 */
-class IncomingTrafficParser implements Runnable
+public class IncomingTrafficParser implements Runnable
 {
     private final PrintWriter out;
     private final Scanner in;
     private final String nick;
     private final ClientGui gui;
 
-    IncomingTrafficParser(final PrintWriter out, final Scanner in, final String nick, final ClientGui gui) {
+    protected IncomingTrafficParser(final PrintWriter out, final Scanner in, final String nick, final ClientGui gui) {
 	this.out = out;
 	this.in = in;
 	this.nick = nick;
@@ -45,23 +45,32 @@ class IncomingTrafficParser implements Runnable
 		sendServer("PONG", messageList.get(1));
 	    }
 	    else{
-		switch (messageList.get(1)) {
+	        String command = messageList.get(1);
+	        String channel;
+		String info = "";
+		if (serverMessage.split(":").length > 2){ //make sure info exists
+		    info = serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1);
+		}
+		switch (command) {
 		    case "376": //END of MOTD, now you can start to join channels.
 			//sendServer("JOIN", "#botters-test");
 			break;
 		    case "332":
 			// Server sends topic of channel, message comes in format ":server 332 username channel :topic", using substring to get second ":"
-			gui.setTopicOfChannel(messageList.get(3), serverMessage.substring(serverMessage.substring(1).indexOf(":")+1));
+			channel = messageList.get(3);
+			String topic = serverMessage.substring(serverMessage.substring(1).indexOf(":")+1);
+			gui.setTopicOfChannel(channel, topic);
 			break;
 		    case "330":
 			// info about user
-			writeToScreen(serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1)+
-				      " " + messageList.get(3), messageList.get(3));
+			String aUser = messageList.get(3);
+			writeToScreen(info + " " + aUser, aUser); // info about aUser to aUser
 			break;
 		    case "353": //Server sends a list of users.
 			String userString = serverMessage.split(":")[2];
+			// splits incoming message into list of users
 			List<String> users = new ArrayList<>(Arrays.asList(userString.split(" ")));
-			for(String user : users){
+			for(String user : users){  // for each user
 			    gui.addUser(user, messageList.get(4));
 			}
 			gui.updateUsers();
@@ -74,17 +83,20 @@ class IncomingTrafficParser implements Runnable
 			System.out.println("Nickname taken!");
 			break;
 		    case "JOIN": // someone joined a channel.
-			writeToScreen(sender + " joined " , messageList.get(2));
-			gui.addUser(sender,messageList.get(2));
+			channel = messageList.get(2);
+			writeToScreen(sender + " joined " , channel);
+			gui.addUser(sender,channel);
 			gui.updateUsers();
 			break;
 		    case "PART": // someone left a channel.
-			writeToScreen(sender + " parted ", messageList.get(2));
+			channel = messageList.get(2);
+			writeToScreen(sender + " parted ", channel);
 			gui.disconnectUser(sender);
 			gui.updateUsers();
 			break;
 		    case "QUIT": // someone quit. If this is user, exit client.
-			writeToScreen(sender + " has quit ", messageList.get(2));
+			channel = messageList.get(2);
+			writeToScreen(sender + " has quit ", channel);
 			gui.disconnectUser(sender);
 			gui.updateUsers();
 			if(sender.equals(nick)){
@@ -92,20 +104,18 @@ class IncomingTrafficParser implements Runnable
 			}
 			break;
 		    case "PRIVMSG": // messages
+			String privMessage = serverMessage.split(":")[2];
 			if (messageList.get(2).equals(nick)) {// PM to user
-			    writeToScreen("<" + sender + "> " + serverMessage.split(":")[2], sender);
+			    writeToScreen("<" + sender + "> " + privMessage, sender);
 			}else{ // message to channel
-			    writeToScreen("<" + sender + "> " + serverMessage.split(":")[2], messageList.get(2));
+			    writeToScreen("<" + sender + "> " + privMessage, messageList.get(2));
 			}
 			break;
 		    default:
 		        // if none of the above, print incoming in current window. This allows user to get relevant info.
-			if (serverMessage.split(":").length > 2){
-			    //serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1)
-			    // doesnt exist in all cases so cant be a variable.
-			    writeToScreen("- " + serverMessage.substring(1).substring(serverMessage.substring(1).indexOf(":")).substring(1)+ ": "+
-					  IRCConnection.getRest(Arrays.asList((serverMessage.split(":")[1].split(" "))), 3),
-					  gui.getCurrentTab());
+			if (serverMessage.split(":").length > 2){ //make sure it contains info relevant to user.
+			    String prefixes = IRCConnection.getRest(Arrays.asList((serverMessage.split(":")[1].split(" "))), 3);
+			    writeToScreen(prefixes +" "+ info, gui.getCurrentTab());
 
 			}
 		}

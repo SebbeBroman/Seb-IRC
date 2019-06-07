@@ -17,11 +17,11 @@ import java.util.List;
  * separate messages and user lists.
  */
 
-class ChannelTab
+public class ChannelTab
 {
     private final String channel;
 
-    String getChannel() {
+    public String getChannel() {
 	return channel;
     }
 
@@ -31,12 +31,12 @@ class ChannelTab
     private final List<String> users;
     private JTextArea topic;
 
-    void setTopic(final String topic) {
+    protected void setTopic(final String topic) {
 	this.topic.setText(topic);
 	System.out.println("Ran setTopic in " + channel);
     }
 
-    ChannelTab(final String channel, final JTabbedPane tb) {
+    protected ChannelTab(final String channel, final JTabbedPane tb) {
 	this.channel = channel;
 	this.parentPane = tb;
 	users = new ArrayList<>();
@@ -49,25 +49,25 @@ class ChannelTab
 	removeTab();
     }
 
-    void writeToTab(String message){
+    protected void writeToTab(String message){
 	messageBox.append("[" + new SimpleDateFormat("HH:mm").format(new Date()) + "] " + message + "\n");
 	messageBox.setCaretPosition(messageBox.getDocument().getLength());
     }
 
-    void addUser(String username){
+    protected void addUser(String username){
         if (!users.contains(username)){
 	    users.add(username);
 	}
     }
 
-    void removeTab(){
+    protected void removeTab(){
         parentPane.remove( parentPane.indexOfTab(this.channel));
     }
 
     List<String> getUsers() {
 	return users;
     }
-    void restoreTab(){
+    protected void restoreTab(){
 	JPanel tabWindow = new JPanel(new MigLayout("","[grow]","[]10[grow]"));
 	tabWindow.add(topic, "Span 1, grow, wrap");
 	tabWindow.add(messagePane, "Span 1, grow");

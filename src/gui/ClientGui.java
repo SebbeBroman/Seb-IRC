@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,13 +53,10 @@ final public class ClientGui extends JFrame
 	userPane.setPreferredSize(new Dimension(100, 100));
 	userPane.setMinimumSize(new Dimension(50, 50));
 	this.frame = new JFrame("Seb IRC -Client");
-	try{
-		ImageIcon img = new ImageIcon(ClassLoader.getSystemResource("ChatBubble.png"));
-		frame.setIconImage(img.getImage());
-	} catch (NullPointerException e){
-	    // Not a mandatory feature for the program so just log the error
-	    // and move on.
-	    LOGGER.log(Level.INFO, String.valueOf(e), e);
+	URL path = ClassLoader.getSystemResource("ChatBubble.png");
+	if(path != null){
+	    ImageIcon img = new ImageIcon(path);
+	    frame.setIconImage(img.getImage());
 	}
 	createMenuBar();
 	channels.addChannel(new ChannelTab("Standard", tabbedPane));
@@ -84,8 +82,10 @@ final public class ClientGui extends JFrame
 	userList.addMouseListener(new ActionJList(userList));
     }
 
-    protected static void initLogger(String logName){
-        //Initialize the logger.
+    static void initLogger(String logName){
+        //Package visible is a good solution here because then i can reuse code from this final class in README to have logger
+	// there aswell
+        //This function initialize a logger with the filename logName.
 	 try {
 	    loggingFileHandler=new FileHandler(logName+".log", false);
 	 } catch (SecurityException | IOException e) {
@@ -121,9 +121,13 @@ final public class ClientGui extends JFrame
 	//should do this no matter what event, event needed for the listener to work
 	String fromUser = userInputField.getText();
 	if (fromUser != null) {
-	    connection.inputHandler(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),fromUser);
-	    infoToScreen(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"<"+nickname + "> "+ fromUser);
-	    userInputField.setText("");
+		if (connection !=null){
+		    connection.inputHandler(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),fromUser);
+		    infoToScreen(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"<"+nickname + "> "+ fromUser);
+		}else{
+		    infoToScreen(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()),"Need a connection to send message");
+		}
+		userInputField.setText("");
 	}
     }
 
@@ -148,6 +152,7 @@ final public class ClientGui extends JFrame
 	}else{ // Only enters on 2 occasions so if not ConnectStandard this is the pressed tab.
 	    connectionDialog = new ConnectWithPass();
 	}
+	connectionDialog.show();
         if(connectionDialog.isSucceeded()){
             updateStatus(connectionDialog.getServerName());
 	    updateNick(connectionDialog.getNickname());

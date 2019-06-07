@@ -22,41 +22,39 @@ import java.util.Objects;
  *     protected boolean succeeded;
  *     protected boolean cancelled;
  */
-abstract class ConnectWindow
+public abstract class ConnectWindow
 {
-    protected String serverName = null;
+    protected String serverName;
     protected int port;
-    protected String nickname = null;
-    protected String username = null;
-    protected String realName = null;
-    protected String password = "";
-    protected JFormattedTextField portArea = null;
-    protected JTextField serverArea = null;
-    protected JTextField nicknameArea = null;
-    protected JTextField usernameArea = null;
-    protected JTextField realNameArea = null;
-    protected JTextField passwordArea = null;
+    protected String nickname;
+    protected String username;
+    protected String realName;
+    protected String password;
+    protected JFormattedTextField portArea;
+    protected JTextField serverArea;
+    protected JTextField nicknameArea;
+    protected JTextField usernameArea;
+    protected JTextField realNameArea;
+    protected JTextField passwordArea;
     protected boolean succeeded;
-    protected boolean cancelled;
-    protected JLabel serverLabel = null;
-    protected JLabel portLabel = null;
-    protected JLabel nickLabel = null;
-    protected JLabel userLabel = null;
-    protected JLabel passLabel = null;
-    protected JLabel realnameLabel = null;
-    protected JLabel error = null;
+    protected JLabel serverLabel;
+    protected JLabel portLabel;
+    protected JLabel nickLabel;
+    protected JLabel userLabel;
+    protected JLabel passLabel;
+    protected JLabel realnameLabel;
+    protected JLabel error;
 
-    public boolean isCancelled() {
-	return cancelled;
-    }
+    
 
-    void setLabelColor(Color color, Iterable<JLabel> labels){
+
+    protected void setLabelColor(Color color, Iterable<JLabel> labels){
             for(JLabel label : labels){
                 label.setForeground(color);
     	}
     }
-
-    Iterable<JLabel> makeStandardFields(){
+    
+    protected ConnectWindow(){
 	final NumberFormat format = NumberFormat.getInstance();
 	format.setGroupingUsed(false);
 	final NumberFormatter numFormatter = new NumberFormatter(format);
@@ -65,7 +63,17 @@ abstract class ConnectWindow
 	numFormatter.setMaximum(Integer.valueOf(Integer.MAX_VALUE));
 	numFormatter.setAllowsInvalid(false);
 	numFormatter.setCommitsOnValidEdit(true);
+	serverArea = new JTextField();
+	nicknameArea = new JTextField();
+	usernameArea = new JTextField();
+	realNameArea = new JTextField();
+	passwordArea = new JTextField();
 	portArea = new JFormattedTextField(numFormatter);
+	serverName = "";
+	username = "";
+	nickname = "";
+	realName = "";
+	password = "";
 	serverLabel = new JLabel("Enter server name");
 	portLabel = new JLabel("Enter port number");
 	nickLabel =  new JLabel("Enter nickname");
@@ -73,11 +81,10 @@ abstract class ConnectWindow
 	passLabel = new JLabel("Enter password: ");
 	realnameLabel = new JLabel("Enter real name");
 	error = new JLabel("Please enter all red fields");
-	serverArea = new JTextField();
-	nicknameArea = new JTextField();
-	usernameArea = new JTextField();
-	realNameArea = new JTextField();
-	passwordArea = new JTextField();
+	
+    }
+
+    protected Iterable<JLabel> makeStandardFields(){
 	List<JLabel> labels = new ArrayList<>();
 	labels.add(serverLabel);
 	labels.add(portLabel);
@@ -86,7 +93,6 @@ abstract class ConnectWindow
 	labels.add(passLabel);
 	labels.add(realnameLabel);
 	labels.add(error);
-
 	return labels;
     }
     protected void handleDialog() {
@@ -99,8 +105,40 @@ abstract class ConnectWindow
 	nickname = nicknameArea.getText();
 	username = usernameArea.getText();
 	realName = realNameArea.getText();
-	succeeded = !(Objects.equals(serverName, "") || port == 0 || Objects.equals(nickname, "") || Objects.equals(username, ""));
+	succeeded = !(Objects.equals(serverName, "") || port == 0 || Objects.equals(nickname, "") ||
+		      Objects.equals(username, ""));
+
     }
+    
+    protected int makeDialog(boolean hasError, boolean hasPass) {
+ 	JComponent[] inputs;
+         succeeded = false;
+ 	if(hasError){
+ 	    setLabelColor(Color.RED, makeStandardFields());
+ 	}else{
+ 	    setLabelColor(Color.BLACK, makeStandardFields());
+ 	}
+ 	if (hasPass){
+ 	    inputs = new JComponent[] {
+ 	    		passLabel, passwordArea,
+ 	    		serverLabel, serverArea,
+ 	    		portLabel, portArea,
+ 	    		nickLabel, nicknameArea,
+ 	    		userLabel, usernameArea,
+ 	    		realnameLabel, realNameArea
+ 	    };
+ 	}
+ 	else{
+ 	    inputs = new JComponent[] {
+ 	   		serverLabel, serverArea,
+ 	   	    	portLabel, portArea,
+ 	   		nickLabel, nicknameArea,
+ 	   		userLabel, usernameArea,
+ 	   	    realnameLabel, realNameArea
+ 	    };
+ 	}
+ 	return JOptionPane.showConfirmDialog(null, inputs, "New connection", JOptionPane.DEFAULT_OPTION);
+     }
 
     protected String getServerName() {
 	return serverName;
@@ -126,4 +164,6 @@ abstract class ConnectWindow
     protected String getPassword() {
     	return password;
         }
+
+    public abstract void show();
 }

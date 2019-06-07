@@ -124,7 +124,7 @@ public class IRCConnection
 	//before the index will be discarded.
         StringBuilder builder = new StringBuilder();
 	for (int i = index; i < strings.size(); i++) {
-	    builder.append(strings.get(i));
+	    builder.append(strings.get(i)).append(" ");
 	}
 	return builder.toString();
     }
