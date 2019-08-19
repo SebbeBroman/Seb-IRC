@@ -79,7 +79,7 @@ final public class ClientGui extends JFrame
 	tabbedPane.addChangeListener(this::switchedTab);
 	userInputField.addActionListener(this::sendMessage);
 	sendButton.addActionListener(this::sendMessage);
-	userList.addMouseListener(new ActionJList(userList));
+	userList.addMouseListener(new ActionJListBorrowedCode(userList));
     }
 
     static void initLogger(String logName){
@@ -133,9 +133,9 @@ final public class ClientGui extends JFrame
 
     private void switchedTab(ChangeEvent event){
 	//should do this no matter what event, event needed for the listener to work
-	if(tabbedPane.getTabCount()<1){ // all tabs closed, disconnect
+	if(tabbedPane.getTabCount()<1){ // all tabs closed, exits program
 	    disconnect();
-	    updateStatus("Disconnected");
+	    System.exit(1);
 	}else{
 	    currentTab = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
 	    users = channels.getUsers(currentTab);
@@ -176,8 +176,8 @@ final public class ClientGui extends JFrame
 		//should do this no matter what event, event needed for the listener to work
 
 		try{
-			connection = new IRCConnection(this,FREENODESERVER,FREENODEPORT, "Seb__XD", "Seb__XD", "Seb b" ,"");
-			updateNick("Seb__XD");
+			connection = new IRCConnection(this,FREENODESERVER,FREENODEPORT, "ClientTest_IRC-Chat", "ClientTest_IRC-Chat", "ClientTest_IRC-Chat" ,"");
+			updateNick("ClientTest_IRC-Chat");
 			updateStatus("chat.freenode.net");
 		}
 		catch(UnknownHostException i){
@@ -203,7 +203,7 @@ final public class ClientGui extends JFrame
 		JMenuItem connectTo = new JMenuItem(" Connect to");
 		JMenuItem connectToProtected = new JMenuItem(" Connect to protected server");
 		JMenuItem disconnect = new JMenuItem(" Disconnect");
-		JMenuItem connectToFreenode = new JMenuItem(" Connect to Freenode");
+		JMenuItem connectToFreenode = new JMenuItem(" Connect to Freenode for testing"); //connects with username "ClientTest_IRC-Chat"
 		JMenuItem getHelp = new JMenuItem("Help");
 		connectToProtected.setToolTipText("Connects to a password protected server of your choice");
 		connectTo.setToolTipText("Connects to server of your choice");
@@ -245,6 +245,7 @@ final public class ClientGui extends JFrame
 	try {
 	    if (connection != null) {
 		connection.disconnect();
+		connection = null;
 		updateStatus("Disconnected");
 	    }
 	} catch (IOException e) {
@@ -258,7 +259,7 @@ final public class ClientGui extends JFrame
 
 
 
-    private final class ActionJList extends MouseAdapter //changed to private and final
+    private final class ActionJListBorrowedCode extends MouseAdapter //changed to private and final
     {
 	/**
 	 * Copied from
@@ -267,7 +268,7 @@ final public class ClientGui extends JFrame
 	 * It changes the selected tab to be a PM to the person clicked on.
 	 */
 	private final JList<Object> list; //changed to private and final
-        private ActionJList(JList<Object> l) { //changed to private
+        private ActionJListBorrowedCode(JList<Object> l) { //changed to private
     		list = l;
         }
         public void mouseClicked(MouseEvent e) {
